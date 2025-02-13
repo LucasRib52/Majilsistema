@@ -1,10 +1,7 @@
 from django.contrib import admin
-from django.urls import path
-from django.http import HttpResponseRedirect
-from django.utils.html import format_html
 from django.urls import reverse
+from django.utils.html import format_html
 from .models import Honorario
-from .views import RelatorioFinanceiroView
 
 @admin.register(Honorario)
 class HonorarioAdmin(admin.ModelAdmin):
@@ -34,10 +31,10 @@ class HonorarioAdmin(admin.ModelAdmin):
             obj.status_pagamento = 'pendente'
         super().save_model(request, obj, form, change)
 
-    # ✅ Botão personalizado no Admin
-    def relatorio_financeiro_link(self, obj):
-        url = reverse('admin:relatorio-financeiro')
-        return format_html(f'<a class="button" href="{url}">Visualizar Relatórios</a>')
+    # ✅ Botão personalizado para Relatório Financeiro no Admin
+    def relatorio_financeiro_link(self, obj=None):
+        url = reverse('relatorio_financeiro')  # Usa o nome correto da URL existente
+        return format_html(f'<a class="button" href="{url}" target="_blank">📊 Visualizar Relatórios</a>')
     
     relatorio_financeiro_link.short_description = "Relatórios"
 
@@ -45,14 +42,5 @@ class HonorarioAdmin(admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         if extra_context is None:
             extra_context = {}
-        extra_context['relatorio_financeiro_link'] = self.relatorio_financeiro_link(None)
+        extra_context['relatorio_financeiro_link'] = self.relatorio_financeiro_link()
         return super().changelist_view(request, extra_context=extra_context)
-
-# ✅ Registrando a URL da view personalizada
-def get_admin_urls(urls):
-    custom_urls = [
-        path('relatorio-financeiro/', RelatorioFinanceiroView.as_view(), name='relatorio-financeiro'),
-    ]
-    return custom_urls + urls
-
-admin.site.get_urls = lambda: get_admin_urls(admin.site.get_urls())
