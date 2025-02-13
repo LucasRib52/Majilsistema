@@ -1,5 +1,10 @@
 from django.contrib import admin
+from django.urls import path
+from django.http import HttpResponseRedirect
+from django.utils.html import format_html
+from django.urls import reverse
 from .models import Honorario
+from .views import RelatorioFinanceiroView
 
 @admin.register(Honorario)
 class HonorarioAdmin(admin.ModelAdmin):
@@ -8,14 +13,9 @@ class HonorarioAdmin(admin.ModelAdmin):
     search_fields = ('cliente__nome_empresa',)
     ordering = ('-data_vencimento',)
     date_hierarchy = 'data_vencimento'
-
-    # ✅ Campos editáveis diretamente na listagem
     list_editable = ('status_pagamento', 'valor_pago')
-
-    # ✅ Campos somente leitura no painel de edição
     readonly_fields = ('data_criacao',)
 
-    # ✅ Personalizando a exibição do formulário no Django Admin
     fieldsets = (
         ("Dados do Honorário", {
             'fields': ('cliente', 'valor_total', 'valor_pago', 'data_vencimento', 'status_pagamento')
@@ -33,3 +33,26 @@ class HonorarioAdmin(admin.ModelAdmin):
         else:
             obj.status_pagamento = 'pendente'
         super().save_model(request, obj, form, change)
+
+    # ✅ Botão personalizado no Admin
+    def relatorio_financeiro_link(self, obj):
+        url = reverse('admin:relatorio-financeiro')
+        return format_html(f'<a class="button" href="{url}">Visualizar Relatórios</a>')
+    
+    relatorio_financeiro_link.short_description = "Relatórios"
+
+    # ✅ Adicionando o botão na interface do admin
+    def changelist_view(self, request, extra_context=None):
+        if extra_context is None:
+            extra_context = {}
+        extra_context['relatorio_financeiro_link'] = self.relatorio_financeiro_link(None)
+        return super().changelist_view(request, extra_context=extra_context)
+
+# ✅ Registrando a URL da view personalizada
+def get_admin_urls(urls):
+    custom_urls = [
+        path('relatorio-financeiro/', RelatorioFinanceiroView.as_view(), name='relatorio-financeiro'),
+    ]
+    return custom_urls + urls
+
+admin.site.get_urls = lambda: get_admin_urls(admin.site.get_urls())
