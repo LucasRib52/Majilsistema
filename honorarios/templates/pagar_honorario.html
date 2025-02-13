@@ -34,7 +34,7 @@
                 <label class="form-label fw-bold">Valor do Pagamento (R$)</label>
                 <div class="input-group">
                     <span class="input-group-text">R$</span>
-                    {{ form.valor_pago }}
+                    <input type="number" name="valor_pago" id="id_valor_pago" class="form-control" step="0.01" min="0.01" lang="en" required>
                 </div>
                 {% if form.valor_pago.errors %}
                     <div class="alert alert-danger mt-2">
@@ -42,6 +42,7 @@
                     </div>
                 {% endif %}
             </div>
+            
 
             <!-- Comprovante de pagamento (opcional) -->
             <div class="mb-3">
@@ -84,19 +85,20 @@
 <!-- Script para impedir pagamento acima do valor faltante -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-    let valorInput = document.querySelector("#id_valor_pago");
-    let valorMaximo = parseFloat("{{ valor_faltante }}");
+        let valorInput = document.querySelector("#id_valor_pago");
+        let valorMaximo = parseFloat("{{ valor_faltante }}");
 
-    valorInput.addEventListener("input", function () {
-        // Substitui vírgulas por pontos e corrige o valor
-        let valorDigitado = parseFloat(valorInput.value.replace(',', '.'));
-
-        if (!isNaN(valorDigitado) && valorDigitado > valorMaximo) {
-            alert(`O valor do pagamento não pode ser maior que o valor faltante (R$ ${valorMaximo.toFixed(2)}).`);
-            valorInput.value = valorMaximo.toFixed(2);
-        }
+        valorInput.addEventListener("blur", function () {
+            let valorDigitado = parseFloat(valorInput.value);
+            if (isNaN(valorDigitado) || valorDigitado <= 0) {
+                alert("Insira um valor válido com até duas casas decimais.");
+                valorInput.value = "";
+            } else if (valorDigitado > valorMaximo) {
+                alert(`O valor do pagamento não pode ser maior que R$ ${valorMaximo.toFixed(2)}.`);
+                valorInput.value = valorMaximo.toFixed(2);
+            }
+        });
     });
-});
 </script>
 
 {% endblock %}
