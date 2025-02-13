@@ -70,15 +70,19 @@ class PagamentoForm(forms.ModelForm):
     def clean_valor_pago(self):
         valor_pago = self.cleaned_data.get('valor_pago')
 
-        if self.honorario:
-            # Garante que o valor restante é tratado corretamente
-            valor_restante = float(self.honorario.valor_total) - float(self.honorario.valor_pago)
+        # Exibe no console para depuração
+        print(f"Valor inserido: {valor_pago}")
 
-            # Permite valores com centavos corretamente
-            if float(valor_pago) > valor_restante:
+        if self.honorario:
+            # Calcula o valor restante com precisão
+            valor_restante = self.honorario.valor_total - self.honorario.valor_pago
+            print(f"Valor restante: {valor_restante}")
+
+            # Compara corretamente os decimais
+            if valor_pago > valor_restante:
                 raise forms.ValidationError(f"O valor do pagamento não pode ser maior que R$ {valor_restante:.2f}.")
             
-            if float(valor_pago) <= 0:
+            if valor_pago <= 0:
                 raise forms.ValidationError("O valor do pagamento deve ser maior que zero.")
             
         return valor_pago
