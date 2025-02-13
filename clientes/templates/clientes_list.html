@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg p-4 rounded">
+        <h2 class="text-center mb-4">Lista de Clientes</h2>
+
+        <!-- Barra de Pesquisa -->
+        <div class="d-flex justify-content-between mb-3">
+            <form method="GET" action="" class="d-flex w-50">
+                <input class="form-control me-2" type="search" name="q" value="{{ request.GET.q|default:'' }}"
+                    placeholder="Buscar por nome da empresa..." aria-label="Buscar">
+                <button class="btn btn-primary me-2" type="submit">
+                    <i class="bi bi-search"></i> Pesquisar
+                </button>
+                {% if request.GET.q %}
+                <a href="{% url 'clientes_list' %}" class="btn btn-outline-danger">
+                    <i class="bi bi-x-circle"></i> Limpar
+                </a>
+                {% endif %}
+            </form>
+            <a href="{% url 'clientes_create' %}" class="btn btn-success">
+                <i class="bi bi-plus-lg"></i> Novo Cliente
+            </a>
+        </div>
+
+        <!-- Tabela -->
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Nome da Empresa</th>
+                        <th>Tipo</th>
+                        <th>Documento</th>
+                        <th>Data de Cadastro</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cliente in clientes %}
+                    <tr>
+                        <td>{{ cliente.nome_empresa }}</td>
+                        <td>
+                            <span class="badge {% if cliente.tipo_pessoa == 'CNPJ' %}bg-primary{% else %}bg-info{% endif %}">
+                                {{ cliente.tipo_pessoa }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if cliente.tipo_pessoa == "CNPJ" %}
+                                {{ cliente.cnpj }}
+                            {% else %}
+                                {{ cliente.cpf }}
+                            {% endif %}
+                        </td>
+                        <td>{{ cliente.data_cadastro|date:"d/m/Y H:i" }}</td>
+                        <td class="text-center">
+                            <a href="{% url 'clientes_edit' cliente.pk %}" class="btn btn-warning btn-sm">
+                                <i class="bi bi-pencil"></i> Editar
+                            </a>
+                            <a href="{% url 'clientes_delete' cliente.pk %}" class="btn btn-danger btn-sm">
+                                <i class="bi bi-trash"></i> Excluir
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">Nenhum cliente encontrado.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <!-- Paginação -->
+        <nav aria-label="Navegação de página">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Anterior</span>
+                </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Próximo</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Próximo</span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- Estilos adicionais -->
+<style>
+    .card {
+        max-width: 900px;
+        margin: auto;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .form-control {
+        border-radius: 8px;
+        padding: 10px;
+    }
+
+    .btn {
+        border-radius: 8px;
+    }
+
+    .badge {
+        font-size: 0.9rem;
+        padding: 5px 10px;
+    }
+</style>
+{% endblock %}

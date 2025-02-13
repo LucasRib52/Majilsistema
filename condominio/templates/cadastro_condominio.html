@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white text-center">
+            <h3 class="mb-0">Cadastrar Condomínio</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" class="row g-3">
+                {% csrf_token %}
+
+                <div class="col-md-12">
+                    <label for="id_nome" class="form-label fw-bold">Nome do Condomínio:</label>
+                    {{ form.nome }}
+                </div>
+
+                <div class="col-md-6">
+                    <label for="id_tipo_unidade" class="form-label fw-bold">Tipo de Unidade:</label>
+                    {{ form.tipo_unidade }}
+                </div>
+
+                <!-- Campo de Sala -->
+                <div class="col-md-6" id="campo_sala" style="display: none;">
+                    <label for="id_numero_sala" class="form-label fw-bold">Número da Sala:</label>
+                    <input type="text" name="numero_sala" id="id_numero_sala" class="form-control">
+                </div>
+
+                <!-- Campo de Loja -->
+                <div class="col-md-6" id="campo_loja" style="display: none;">
+                    <label for="id_numero_loja" class="form-label fw-bold">Número da Loja:</label>
+                    <input type="text" name="numero_loja" id="id_numero_loja" class="form-control">
+                </div>
+
+                <div class="col-12 text-center mt-4">
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="bi bi-check-circle-fill"></i> Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let tipoUnidade = document.getElementById("id_tipo_unidade");
+        let campoSala = document.getElementById("campo_sala");
+        let campoLoja = document.getElementById("campo_loja");
+
+        function atualizarCampos() {
+            let tipo = tipoUnidade.value;
+            if (tipo === "sala") {
+                campoSala.style.display = "block";
+                campoLoja.style.display = "none";
+            } else if (tipo === "loja") {
+                campoSala.style.display = "none";
+                campoLoja.style.display = "block";
+            } else {
+                campoSala.style.display = "none";
+                campoLoja.style.display = "none";
+            }
+        }
+
+        // Inicializar corretamente ao carregar a página
+        atualizarCampos();
+
+        // Atualizar ao mudar o tipo de unidade
+        tipoUnidade.addEventListener("change", atualizarCampos);
+
+        // Aplicar classes do Bootstrap aos campos Django
+        document.querySelectorAll("input, select").forEach(element => {
+            element.classList.add("form-control");
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg p-4 rounded">
+        <h2 class="text-center mb-4">Cadastrar Cliente</h2>
+
+        <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+
+            <!-- Nome da Empresa -->
+            <div class="mb-3">
+                <label for="{{ form.nome_empresa.id_for_label }}" class="form-label fw-bold">Nome da Empresa</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-building"></i></span>
+                    {{ form.nome_empresa }}
+                </div>
+            </div>
+
+            <!-- Tipo de Pessoa (CNPJ ou CPF) -->
+            <div class="mb-3">
+                <label for="{{ form.tipo_pessoa.id_for_label }}" class="form-label fw-bold">Tipo de Pessoa</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                    {{ form.tipo_pessoa }}
+                </div>
+            </div>
+
+            <!-- CNPJ (Escondido por padrão) -->
+            <div class="mb-3 d-none" id="cnpj_field">
+                <label for="cnpj_input" class="form-label fw-bold">CNPJ</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-file-earmark-text"></i></span>
+                    <input type="text" class="form-control" name="cnpj" id="cnpj_input" placeholder="00.000.000/0000-00" maxlength="18">
+                </div>
+            </div>
+
+            <!-- CPF (Escondido por padrão) -->
+            <div class="mb-3 d-none" id="cpf_field">
+                <label for="cpf_input" class="form-label fw-bold">CPF</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-credit-card"></i></span>
+                    <input type="text" class="form-control" name="cpf" id="cpf_input" placeholder="000.000.000-00" maxlength="14">
+                </div>
+            </div>
+
+            <!-- Botões -->
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'clientes_list' %}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
+                <button type="submit" class="btn btn-success"><i class="bi bi-check-lg"></i> Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- JavaScript para exibição dinâmica e máscaras -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.7-beta.19/jquery.inputmask.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const tipoPessoa = document.querySelector("select[name='tipo_pessoa']");
+        const cnpjField = document.getElementById("cnpj_field");
+        const cpfField = document.getElementById("cpf_field");
+        const cnpjInput = document.getElementById("cnpj_input");
+        const cpfInput = document.getElementById("cpf_input");
+
+        function toggleFields() {
+            if (tipoPessoa.value === "CNPJ") {
+                cnpjField.classList.remove("d-none");
+                cpfField.classList.add("d-none");
+                cpfInput.value = ""; // Limpa o campo CPF
+            } else if (tipoPessoa.value === "CPF") {
+                cpfField.classList.remove("d-none");
+                cnpjField.classList.add("d-none");
+                cnpjInput.value = ""; // Limpa o campo CNPJ
+            } else {
+                cnpjField.classList.add("d-none");
+                cpfField.classList.add("d-none");
+                cnpjInput.value = "";
+                cpfInput.value = "";
+            }
+        }
+
+        tipoPessoa.addEventListener("change", toggleFields);
+        toggleFields(); // Garante que o estado inicial está correto
+
+        // Aplica máscara nos campos
+        $(document).ready(function () {
+            $('#cnpj_input').inputmask("99.999.999/9999-99");
+            $('#cpf_input').inputmask("999.999.999-99");
+        });
+    });
+</script>
+
+<!-- Estilização extra -->
+<style>
+    .card {
+        max-width: 600px;
+        margin: auto;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    }
+
+    .form-control {
+        border-radius: 8px;
+        padding: 10px;
+    }
+
+    .input-group-text {
+        background-color: #e9ecef;
+        border-radius: 8px 0 0 8px;
+    }
+
+    button.btn {
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}

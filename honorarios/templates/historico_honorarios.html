@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg p-4">
+        <h2 class="text-center text-primary mb-4">
+            <i class="bi bi-clock-history"></i> Histórico de Honorários
+        </h2>
+
+        <!-- Formulário de Filtros -->
+        <form method="GET" class="row g-3 mb-4">
+            <div class="col-md-4">
+                <label for="cliente" class="form-label">Buscar Cliente</label>
+                <input type="text" name="cliente" id="cliente" class="form-control" placeholder="Digite o nome do cliente..." value="{{ request.GET.cliente }}">
+            </div>
+
+            <div class="col-md-3">
+                <label for="mes" class="form-label">Mês</label>
+                <select name="mes" id="mes" class="form-select">
+                    <option value="1" {% if request.GET.mes|default:mes_atual == "1" %}selected{% endif %}>Janeiro</option>
+                    <option value="2" {% if request.GET.mes|default:mes_atual == "2" %}selected{% endif %}>Fevereiro</option>
+                    <option value="3" {% if request.GET.mes|default:mes_atual == "3" %}selected{% endif %}>Março</option>
+                    <option value="4" {% if request.GET.mes|default:mes_atual == "4" %}selected{% endif %}>Abril</option>
+                    <option value="5" {% if request.GET.mes|default:mes_atual == "5" %}selected{% endif %}>Maio</option>
+                    <option value="6" {% if request.GET.mes|default:mes_atual == "6" %}selected{% endif %}>Junho</option>
+                    <option value="7" {% if request.GET.mes|default:mes_atual == "7" %}selected{% endif %}>Julho</option>
+                    <option value="8" {% if request.GET.mes|default:mes_atual == "8" %}selected{% endif %}>Agosto</option>
+                    <option value="9" {% if request.GET.mes|default:mes_atual == "9" %}selected{% endif %}>Setembro</option>
+                    <option value="10" {% if request.GET.mes|default:mes_atual == "10" %}selected{% endif %}>Outubro</option>
+                    <option value="11" {% if request.GET.mes|default:mes_atual == "11" %}selected{% endif %}>Novembro</option>
+                    <option value="12" {% if request.GET.mes|default:mes_atual == "12" %}selected{% endif %}>Dezembro</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label for="ano" class="form-label">Ano</label>
+                <select name="ano" id="ano" class="form-select">
+                    {% for ano in anos %}
+                    <option value="{{ ano }}" {% if request.GET.ano|default:ano_atual == ano|stringformat:"i" %}selected{% endif %}>
+                        {{ ano }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="pendente" {% if request.GET.status == "pendente" %}selected{% endif %}>Pendente</option>
+                    <option value="pago" {% if request.GET.status == "pago" %}selected{% endif %}>Pago</option>
+                </select>
+            </div>
+
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i> Filtrar
+                </button>
+            </div>
+
+            <div class="col-md-3 d-flex align-items-end">
+                <a href="{% url 'historico_honorarios' %}" class="btn btn-secondary w-100">
+                    <i class="bi bi-x-circle"></i> Limpar
+                </a>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle">
+                <thead class="table-dark text-center">
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Valor Total (R$)</th>
+                        <th>Valor Pago (R$)</th>
+                        <th>Faltando (R$)</th>
+                        <th>Data de Vencimento</th>
+                        <th>Status</th>
+                        <th>Observação</th> <!-- Nova coluna -->
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for honorario in honorarios %}
+                    <tr class="text-center">
+                        <td class="fw-bold">{{ honorario.cliente.nome_empresa }}</td>
+                        <td class="fw-bold text-dark">R$ {{ honorario.valor_total|floatformat:2 }}</td>
+                        <td class="fw-bold text-success">R$ {{ honorario.valor_pago|floatformat:2 }}</td>
+                        <td class="fw-bold {% if honorario.valor_faltante <= 0 %}text-success{% else %}text-danger{% endif %}">
+                            R$ {{ honorario.valor_faltante|floatformat:2 }}
+                        </td>
+                        <td>{{ honorario.data_vencimento }}</td>
+                        <td>
+                            <span class="badge {% if honorario.status_pagamento == 'pendente' %}bg-danger{% else %}bg-success{% endif %} p-2">
+                                {{ honorario.get_status_pagamento_display }}
+                            </span>
+                        </td>
+                        <!-- Exibir apenas os primeiros 30 caracteres da observação -->
+                        <td>
+                            {% if honorario.observacao %}
+                                {{ honorario.observacao|truncatechars:30 }}
+                                <a href="{% url 'detalhes_pagamento' honorario.id %}" class="text-primary text-decoration-none">
+                                    Ver mais
+                                </a>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'editar_honorario' honorario.id %}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-pencil-square"></i> Editar
+                                </a>
+                
+                                {% if honorario.status_pagamento == 'pendente' %}
+                                <a href="{% url 'excluir_honorario' honorario.id %}" class="btn btn-sm btn-danger">
+                                    <i class="bi bi-trash"></i> Excluir
+                                </a>
+                                <a href="{% url 'pagar_honorario' honorario.id %}" class="btn btn-sm btn-warning">
+                                    <i class="bi bi-cash"></i> Pagar
+                                </a>
+                                {% else %}
+                                <a href="{% url 'detalhes_pagamento' honorario.id %}" class="btn btn-sm btn-info">
+                                    <i class="bi bi-eye"></i> Ver Detalhes
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center">Nenhum honorário cadastrado ainda.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                
+            </table>
+        </div>
+
+        <!-- Paginação -->
+        <nav aria-label="Navegação de página">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Anterior</span>
+                </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Próximo</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Próximo</span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+{% endblock %}

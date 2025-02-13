@@ -1,0 +1,111 @@
+    {% extends 'base.html' %}
+
+    {% block content %}
+    <div class="container mt-5">
+        <div class="card shadow-lg p-4">
+            <h2 class="text-center text-primary mb-4">
+                <i class="bi bi-clipboard-plus"></i> Cadastrar Honorário
+            </h2>
+
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+            
+                <!-- Exibir erros do formulário -->
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <strong>Erro:</strong> 
+                    <ul>
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            
+                <!-- Campo de busca com autocomplete -->
+                <div class="mb-3 position-relative">
+                    <label class="form-label fw-bold">Cliente</label>
+                    <input type="text" id="cliente-search" class="form-control" placeholder="Digite o nome do cliente..." autocomplete="off">
+                    <div id="cliente-suggestions" class="dropdown-menu show w-100" style="display: none; position: absolute;"></div>
+                </div>
+            
+                <!-- Campo oculto para armazenar o ID do cliente -->
+                <input type="hidden" id="cliente-id" name="cliente_id">
+            
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Valor do Honorário (R$)</label>
+                    <input type="number" step="0.01" name="valor_total" class="form-control" required>
+                </div>
+            
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-lg btn-success">
+                        <i class="bi bi-check-circle"></i> Salvar Honorário
+                    </button>
+                </div>
+            </form>
+            
+            <div class="text-center mt-3">
+                <a href="{% url 'historico_honorarios' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Cancelar
+                </a>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Script para Autocomplete -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let inputCliente = document.getElementById("cliente-search");
+            let suggestionsBox = document.getElementById("cliente-suggestions");
+            let hiddenInput = document.getElementById("cliente-id");
+    
+            inputCliente.addEventListener("input", function () {
+                let query = inputCliente.value.trim();
+                if (query.length < 2) {
+                    suggestionsBox.style.display = "none";
+                    return;
+                }
+    
+                fetch(`/honorarios/autocomplete-clientes/?q=${query}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        suggestionsBox.innerHTML = "";
+                        if (data.length === 0) {
+                            suggestionsBox.style.display = "none";
+                            return;
+                        }
+    
+                        data.forEach(cliente => {
+                            let item = document.createElement("a");
+                            item.classList.add("dropdown-item");
+                            item.innerHTML = `<strong>${cliente.nome}</strong> <br> <small>${cliente.cnpj_cpf}</small>`;
+                            item.href = "#";
+    
+                            item.addEventListener("click", function (e) {
+                                e.preventDefault();
+                                inputCliente.value = cliente.nome;
+                                hiddenInput.value = cliente.id;  // 🔥 Agora salva o ID corretamente!
+                                suggestionsBox.style.display = "none";
+                            });
+    
+                            suggestionsBox.appendChild(item);
+                        });
+    
+                        suggestionsBox.style.display = "block";
+                    });
+            });
+    
+            document.addEventListener("click", function (event) {
+                if (!inputCliente.contains(event.target) && !suggestionsBox.contains(event.target)) {
+                    suggestionsBox.style.display = "none";
+                }
+            });
+        });
+    </script>
+    
+
+
+    {% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg p-4">
+        <h2 class="text-center text-success mb-4">
+            Detalhes do Pagamento
+        </h2>
+
+        <div class="alert alert-info text-center">
+            <strong>Cliente:</strong> {{ honorario.cliente.nome_empresa }} <br>
+            <strong>CNPJ/CPF:</strong> 
+            {% if honorario.cliente.tipo_pessoa == 'CNPJ' %}
+                {{ honorario.cliente.cnpj }}
+            {% else %}
+                {{ honorario.cliente.cpf }}
+            {% endif %}
+        </div>
+
+        <div class="alert alert-warning">
+            <strong>Data do Pagamento:</strong> {{ data_pagamento }} <br>
+            <strong>Valor Pago:</strong> R$ {{ valor_pago|floatformat:2 }} <br>
+        </div>
+
+        {% if comprovante %}
+        <div class="alert alert-info">
+            <strong>Comprovante:</strong> <br>
+            <a href="{{ comprovante.url }}" target="_blank" class="btn btn-info">Ver Comprovante</a>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+            <strong>Comprovante:</strong> Não enviado.
+        </div>
+        {% endif %}
+
+        <!-- Exibir o campo de observação completo -->
+        {% if honorario.observacao %}
+        <div class="alert alert-secondary">
+            <strong>Observação:</strong> <br>
+            {{ honorario.observacao }}
+        </div>
+        {% endif %}
+
+        <div class="text-center mt-3">
+            <a href="{% url 'historico_honorarios' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

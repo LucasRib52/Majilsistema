@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow-lg p-4" style="max-width: 500px; width: 100%;">
+        <h2 class="text-center text-success mb-4">
+            <i class="bi bi-cash-stack"></i> Pagamento de Honorário
+        </h2>
+
+        <div class="alert alert-info text-center">
+            <strong>Cliente:</strong> {{ honorario.cliente.nome_empresa }} <br>
+            <strong>CNPJ/CPF:</strong> 
+            {% if honorario.cliente.tipo_pessoa == 'CNPJ' %}
+                {{ honorario.cliente.cnpj }}
+            {% else %}
+                {{ honorario.cliente.cpf }}
+            {% endif %}
+        </div>
+
+        <div class="alert alert-warning text-center">
+            <strong>Valor Total:</strong> R$ {{ honorario.valor_total|floatformat:2 }} <br>
+            <strong>Valor Pago:</strong> R$ {{ honorario.valor_pago|floatformat:2 }} <br>
+            <strong>Faltando:</strong> 
+            <span class="fw-bold {% if valor_faltante <= 0 %}text-success{% else %}text-danger{% endif %}">
+                R$ {{ valor_faltante|floatformat:2 }}
+            </span>
+        </div>
+
+        <!-- Formulário com enctype para envio de arquivos -->
+        <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Valor do Pagamento (R$)</label>
+                <div class="input-group">
+                    <span class="input-group-text">R$</span>
+                    {{ form.valor_pago }}
+                </div>
+                {% if form.valor_pago.errors %}
+                    <div class="alert alert-danger mt-2">
+                        {{ form.valor_pago.errors.0 }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Comprovante de pagamento (opcional) -->
+            <div class="mb-3">
+                <label class="form-label fw-bold">Comprovante de Pagamento (opcional)</label>
+                {{ form.comprovante }}
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-lg btn-success">
+                    <i class="bi bi-check-circle"></i> Confirmar Pagamento
+                </button>
+            </div>
+        </form>
+
+        <div class="text-center mt-3">
+            <a href="{% url 'historico_honorarios' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Cancelar
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap 5 Validation -->
+<script>
+    (function () {
+        'use strict';
+        var forms = document.querySelectorAll('.needs-validation');
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+</script>
+
+<!-- Script para impedir pagamento acima do valor faltante -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let valorInput = document.querySelector("#id_valor_pago");
+        let valorMaximo = parseFloat("{{ valor_faltante }}");
+
+        valorInput.addEventListener("input", function () {
+            let valorDigitado = parseFloat(valorInput.value);
+            
+            if (!isNaN(valorDigitado) && valorDigitado > valorMaximo) {
+                alert("O valor do pagamento não pode ser maior que o valor faltante.");
+                valorInput.value = valorMaximo.toFixed(2);
+            }
+        });
+    });
+</script>
+
+{% endblock %}

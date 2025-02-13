@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Relatório Financeiro
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center text-primary mb-4">
+        <i class="fas fa-chart-line"></i> Relatório Financeiro
+    </h2>
+
+    <!-- Filtro de Ano e Mês -->
+    <form method="GET" action="{% url 'relatorio_financeiro' %}" class="mb-4">
+        <div class="row g-3 justify-content-center">
+            <div class="col-md-3">
+                <label for="ano" class="form-label fw-bold">📅 Selecione o Ano:</label>
+                <select class="form-select" name="ano" id="ano">
+                    {% for ano in anos %}
+                        <option value="{{ ano }}" {% if ano == ano_selecionado %}selected{% endif %}>
+                            {{ ano }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="mes" class="form-label fw-bold">📆 Selecione o Mês:</label>
+                <select class="form-select" name="mes" id="mes">
+                    <option value="">Todos</option>
+                    {% for mes, nome in meses %}
+                        <option value="{{ mes }}" {% if mes == mes_selecionado %}selected{% endif %}>
+                            {{ nome }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter"></i> Filtrar
+                </button>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="button" class="btn btn-secondary w-100" id="limparFiltros">
+                    <i class="fas fa-sync-alt"></i> Limpar Filtros
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Cards de Indicadores Financeiros -->
+    <div class="row row-cols-1 row-cols-md-4 g-3 text-center mt-4">
+        <div class="col">
+            <div class="card shadow-lg border-0 text-white bg-primary p-3" style="min-height: 140px;">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                    <h5 class="card-title fw-bold"><i class="fas fa-users"></i> Total de Honorarios</h5>
+                    <p class="card-text fs-4 fw-semibold">{{ total_honorarios_cadastrados }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card shadow-lg border-0 text-white bg-info p-3" style="min-height: 140px;">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                    <h5 class="card-title fw-bold"><i class="fas fa-money-bill-wave"></i> Honorários Totais</h5>
+                    <p class="card-text fs-4 fw-semibold">R$ {{ total_honorarios|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card shadow-lg border-0 text-white bg-success p-3" style="min-height: 140px;">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                    <h5 class="card-title fw-bold"><i class="fas fa-check-circle"></i> Valor Pago</h5>
+                    <p class="card-text fs-4 fw-semibold">R$ {{ total_pago|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card shadow-lg border-0 text-white bg-danger p-3" style="min-height: 140px;">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                    <h5 class="card-title fw-bold"><i class="fas fa-exclamation-triangle"></i> Valores Pendentes</h5>
+                    <p class="card-text fs-4 fw-semibold">R$ {{ total_faltante|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estilos para os gráficos -->
+    <style>
+        .grafico-container {
+            min-height: 420px;
+            padding: 15px;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 300px !important;
+        }
+    </style>
+
+    <!-- Gráficos -->
+<div class="row mt-5">
+    <div class="col-md-6">
+        <div class="card shadow-lg border-0 p-4">
+            <h4 class="fw-bold text-center"><i class="fas fa-chart-area"></i> Total de Honorários</h4>
+            <div class="d-flex justify-content-center">
+                <canvas id="graficoHonorarios"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-lg border-0 p-4">
+            <h4 class="fw-bold text-center"><i class="fas fa-chart-bar"></i> Valores Pagos</h4>
+            <div class="d-flex justify-content-center">
+                <canvas id="graficoPagos"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mt-4">
+        <div class="card shadow-lg border-0 p-4">
+            <h4 class="fw-bold text-center"><i class="fas fa-chart-pie"></i> Valores Pendentes</h4>
+            <div class="d-flex justify-content-center">
+                <canvas id="graficoPendentes"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById("limparFiltros").addEventListener("click", function() {
+            window.location.href = "{% url 'relatorio_financeiro' %}";
+        });
+
+        const labels = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+        function criarGrafico(idCanvas, label, data, color) {
+            new Chart(document.getElementById(idCanvas).getContext("2d"), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: labels.map((_, index) => data[index + 1] || 0),
+                        borderColor: color,
+                        backgroundColor: color.replace('1)', '0.1)'),
+                        borderWidth: 2,
+                        pointRadius: 5,
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        // Criando gráficos existentes
+        criarGrafico("graficoHonorarios", "Honorários (R$)", JSON.parse('{{ honorarios_json|default:"{}"|escapejs }}'), "rgba(13, 202, 240, 1)");
+        criarGrafico("graficoPagos", "Valores Pagos (R$)", JSON.parse('{{ pagos_json|default:"{}"|escapejs }}'), "rgba(25, 135, 84, 1)");
+        criarGrafico("graficoPendentes", "Valores Pendentes (R$)", JSON.parse('{{ pendentes_json|default:"{}"|escapejs }}'), "rgba(220, 53, 69, 1)");
+
+    });
+</script>
+
+{% endblock %}

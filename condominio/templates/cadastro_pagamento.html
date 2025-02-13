@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white text-center">
+            <h3 class="mb-0">Registrar Pagamento</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" class="row g-3">
+                {% csrf_token %}
+
+                <!-- Seleção do Condomínio -->
+                <div class="col-md-12">
+                    <label for="id_condominio" class="form-label fw-bold">Selecione o Condomínio:</label>
+                    {{ form.condominio }}
+                </div>
+
+                <!-- Campo de Valor -->
+                <div class="col-md-6">
+                    <label for="id_valor" class="form-label fw-bold">Valor do Pagamento:</label>
+                    <div class="input-group">
+                        <span class="input-group-text">R$</span>
+                        {{ form.valor }}
+                    </div>
+                </div>
+
+                <!-- Campo de Descrição -->
+                <div class="col-md-12">
+                    <label for="id_descricao" class="form-label fw-bold">Descrição do Pagamento:</label>
+                    {{ form.descricao }}
+                </div>
+
+                <!-- Campo de Comprovante -->
+                <div class="col-md-12">
+                    <label for="id_comprovante" class="form-label fw-bold">Comprovante:</label>
+                    {{ form.comprovante }}
+                </div>
+
+                <!-- Botão de Submissão -->
+                <div class="col-12 text-center mt-4">
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="bi bi-credit-card-fill"></i> Registrar Pagamento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Aplicar estilos Bootstrap nos campos do formulário Django
+        document.querySelectorAll("input, select, textarea").forEach(element => {
+            element.classList.add("form-control");
+        });
+
+        // Melhorando o campo de arquivo para upload de comprovante
+        document.getElementById("id_comprovante").classList.add("form-control-file");
+    });
+</script>
+{% endblock %}

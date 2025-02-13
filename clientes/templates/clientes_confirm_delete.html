@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mt-4">Excluir Cliente</h2>
+    <p>Tem certeza que deseja excluir o cliente <strong>{{ cliente.nome_empresa }}</strong>?</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Sim, Excluir</button>
+        <a href="{% url 'clientes_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}
