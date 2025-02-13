@@ -9,18 +9,18 @@
 
         <div class="alert alert-info text-center">
             <strong>Cliente:</strong> {{ honorario.cliente.nome_empresa }} <br>
-            <strong>CNPJ/CPF:</strong> 
+            <strong>CNPJ/CPF:</strong>
             {% if honorario.cliente.tipo_pessoa == 'CNPJ' %}
-                {{ honorario.cliente.cnpj }}
+            {{ honorario.cliente.cnpj }}
             {% else %}
-                {{ honorario.cliente.cpf }}
+            {{ honorario.cliente.cpf }}
             {% endif %}
         </div>
 
         <div class="alert alert-warning text-center">
             <strong>Valor Total:</strong> R$ {{ honorario.valor_total|floatformat:2 }} <br>
             <strong>Valor Pago:</strong> R$ {{ honorario.valor_pago|floatformat:2 }} <br>
-            <strong>Faltando:</strong> 
+            <strong>Faltando:</strong>
             <span class="fw-bold {% if valor_faltante <= 0 %}text-success{% else %}text-danger{% endif %}">
                 R$ {{ valor_faltante|floatformat:2 }}
             </span>
@@ -34,15 +34,17 @@
                 <label class="form-label fw-bold">Valor do Pagamento (R$)</label>
                 <div class="input-group">
                     <span class="input-group-text">R$</span>
-                    <input type="number" name="valor_pago" id="id_valor_pago" class="form-control" step="0.01" min="0.01" lang="en" required>
+                    <input type="text" name="valor_pago" id="id_valor_pago" class="form-control"
+                        placeholder="Ex.: 200.58" required>
                 </div>
                 {% if form.valor_pago.errors %}
-                    <div class="alert alert-danger mt-2">
-                        {{ form.valor_pago.errors.0 }}
-                    </div>
+                <div class="alert alert-danger mt-2">
+                    {{ form.valor_pago.errors.0 }}
+                </div>
                 {% endif %}
             </div>
-            
+
+
 
             <!-- Comprovante de pagamento (opcional) -->
             <div class="mb-3">
@@ -85,17 +87,26 @@
 <!-- Script para impedir pagamento acima do valor faltante -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        let valorInput = document.querySelector("#id_valor_pago");
-        let valorMaximo = parseFloat("{{ valor_faltante }}");
+        const valorInput = document.querySelector("#id_valor_pago");
+        const valorMaximo = Number("{{ valor_faltante }}".replace(',', '.'));
+
+        valorInput.addEventListener("input", function () {
+            // Permite apenas números e ponto
+            this.value = this.value.replace(/[^0-9.,]/g, '');
+            this.value = this.value.replace(',', '.'); // Converte vírgula para ponto
+        });
 
         valorInput.addEventListener("blur", function () {
-            let valorDigitado = parseFloat(valorInput.value);
+            let valorDigitado = parseFloat(this.value);
+
             if (isNaN(valorDigitado) || valorDigitado <= 0) {
                 alert("Insira um valor válido com até duas casas decimais.");
-                valorInput.value = "";
+                this.value = "";
             } else if (valorDigitado > valorMaximo) {
                 alert(`O valor do pagamento não pode ser maior que R$ ${valorMaximo.toFixed(2)}.`);
-                valorInput.value = valorMaximo.toFixed(2);
+                this.value = valorMaximo.toFixed(2);
+            } else {
+                this.value = valorDigitado.toFixed(2);
             }
         });
     });

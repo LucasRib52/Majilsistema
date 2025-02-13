@@ -1,6 +1,8 @@
 from django import forms
 from .models import Honorario
 from clientes.models import Cliente
+from decimal import Decimal, InvalidOperation
+
 
 class HonorarioForm(forms.ModelForm):
     cliente_id = forms.CharField(
@@ -70,8 +72,17 @@ class PagamentoForm(forms.ModelForm):
     def clean_valor_pago(self):
         valor_pago = self.cleaned_data.get('valor_pago')
 
-        if valor_pago is None or valor_pago <= 0:
-            raise forms.ValidationError("O valor do pagamento deve ser positivo e com até duas casas decimais.")
+        # Substituímos vírgula por ponto antes de converter
+        if isinstance(valor_pago, str):
+            valor_pago = valor_pago.replace(',', '.')
+
+        try:
+            valor_pago = Decimal(valor_pago)
+        except (InvalidOperation, ValueError):
+            raise forms.ValidationError("Insira um valor válido com até duas casas decimais (use ponto para centavos).")
+
+        if valor_pago <= 0:
+            raise forms.ValidationError("O valor do pagamento deve ser positivo.")
         
         if self.honorario:
             valor_restante = self.honorario.valor_total - self.honorario.valor_pago
@@ -79,6 +90,7 @@ class PagamentoForm(forms.ModelForm):
                 raise forms.ValidationError(f"O valor não pode exceder o restante de R$ {valor_restante:.2f}.")
 
         return valor_pago
+
 
 
 class HonorarioUpdateForm(forms.ModelForm):
