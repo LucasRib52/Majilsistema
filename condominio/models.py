@@ -6,7 +6,7 @@ class Condominio(models.Model):
         ('loja', 'Loja'),
     ]
 
-    nome = models.CharField(max_length=255, unique=True)
+    nome = models.CharField(max_length=255)
     tipo_unidade = models.CharField(max_length=5, choices=TIPO_UNIDADE)
     numero_sala = models.CharField(max_length=10, blank=True, null=True)
     numero_loja = models.CharField(max_length=10, blank=True, null=True)
